@@ -1,3 +1,86 @@
-[gd_scene format=3 uid="uid://c4figquedson8"]
+[gd_scene load_steps=2 format=3]
 
-[node name="akari" type="Node" unique_id=1143846968]
+[ext_resource type="Script" path="res://app/scripts/chat.gd" id="1_chat"]
+
+[node name="akari" type="Node"]
+script = ExtResource("1_chat")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0126, 0.0126, 0.0126, 1)
+
+[node name="MainPanel" type="ColorRect" parent="UI"]
+layout_mode = 1
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 1052.0
+offset_bottom = 548.0
+color = Color(0.0745, 0.0745, 0.0745, 1)
+
+[node name="Content" type="VBoxContainer" parent="UI/MainPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="PanelContainer" parent="UI/MainPanel/Content"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="HeaderRow" type="HBoxContainer" parent="UI/MainPanel/Content/Header"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UI/MainPanel/Content/Header/HeaderRow"]
+layout_mode = 2
+text = "Akari"
+
+[node name="SettingsButton" type="Button" parent="UI/MainPanel/Content/Header/HeaderRow"]
+layout_mode = 2
+text = "⚙"
+
+[node name="ChatButton" type="Button" parent="UI/MainPanel/Content/Header/HeaderRow"]
+layout_mode = 2
+text = "Chat"
+
+[node name="ChatArea" type="VBoxContainer" parent="UI/MainPanel/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Messages" type="ScrollContainer" parent="UI/MainPanel/Content/ChatArea"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MessageList" type="VBoxContainer" parent="UI/MainPanel/Content/ChatArea/Messages"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TestMessage" type="Label" parent="UI/MainPanel/Content/ChatArea/Messages/MessageList"]
+layout_mode = 2
+text = "Hello! I am Akari"
+
+[node name="InputRow" type="HBoxContainer" parent="UI/MainPanel/Content/ChatArea"]
+layout_mode = 2
+
+[node name="MessageInput" type="LineEdit" parent="UI/MainPanel/Content/ChatArea/InputRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type a message..."
+
+[node name="SendButton" type="Button" parent="UI/MainPanel/Content/ChatArea/InputRow"]
+layout_mode = 2
+text = "Send"
