@@ -12,11 +12,8 @@ var is_recording := false
 var microphone_player: AudioStreamPlayer
 var record_effect: AudioEffectRecord
 var record_bus_index := -1
-
-
 func _ready() -> void:
     setup_recording()
-
 
 func setup_recording() -> void:
     record_bus_index = AudioServer.get_bus_index(RECORD_BUS)
