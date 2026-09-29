@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
 import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.UsedByGodot
@@ -16,6 +17,9 @@ class AkariSpeechPlugin(godot: Godot) : GodotPlugin(godot) {
     private var result: String = ""
     private var error: String = ""
     private var listening: Boolean = false
+
+    private var textToSpeech: TextToSpeech? = null
+    private var ttsReady: Boolean = false
 
     override fun getPluginName(): String {
         return "AkariSpeech"
@@ -150,6 +154,96 @@ class AkariSpeechPlugin(godot: Godot) : GodotPlugin(godot) {
 
             recognizer = null
             listening = false
+        }
+    }
+
+    @UsedByGodot
+    fun isTtsAvailable(): Boolean {
+        return getActivity() != null
+    }
+
+    @UsedByGodot
+    fun speak(text: String) {
+        val activity = getActivity()
+
+        if (activity == null) {
+            error = "Android activity is unavailable."
+            return
+        }
+
+        val cleanText = text.trim()
+
+        if (cleanText.isEmpty()) {
+            return
+        }
+
+        activity.runOnUiThread {
+            try {
+                if (textToSpeech == null) {
+                    textToSpeech = TextToSpeech(activity) { status ->
+                        if (status == TextToSpeech.SUCCESS) {
+                            ttsReady = true
+                            textToSpeech?.language = Locale.getDefault()
+                            textToSpeech?.speak(
+                                cleanText,
+                                TextToSpeech.QUEUE_FLUSH,
+                                null,
+                                "akari_tts"
+                            )
+                        } else {
+                            ttsReady = false
+                            error = "Text-to-speech initialization failed."
+                        }
+                    }
+                    return@runOnUiThread
+                }
+
+                if (!ttsReady) {
+                    error = "Text-to-speech is not ready yet."
+                    return@runOnUiThread
+                }
+
+                textToSpeech?.speak(
+                    cleanText,
+                    TextToSpeech.QUEUE_FLUSH,
+                    null,
+                    "akari_tts"
+                )
+            } catch (exception: Exception) {
+                error = "${exception.javaClass.simpleName}: ${exception.message}"
+            }
+        }
+    }
+
+    @UsedByGodot
+    fun stopSpeaking() {
+        getActivity()?.runOnUiThread {
+            try {
+                textToSpeech?.stop()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    override fun onMainDestroy() {
+        try {
+            textToSpeech?.stop()
+            textToSpeech?.shutdown()
+        } catch (_: Exception) {
+        }
+
+        textToSpeech = null
+        ttsReady = false
+
+        super.onMainDestroy()
+    }
+
+    @UsedByGodot
+    fun isSpeaking(): Boolean {
+        return try {
+            textToSpeech?.isSpeaking == true
+        } catch (_: Exception) {
+            false
         }
     }
 }

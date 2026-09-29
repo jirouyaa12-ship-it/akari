@@ -12,8 +12,43 @@ var is_recording := false
 var microphone_player: AudioStreamPlayer
 var record_effect: AudioEffectRecord
 var record_bus_index := -1
+var speech_plugin: Object = null
 func _ready() -> void:
     setup_recording()
+    setup_speech()
+
+func setup_speech() -> void:
+    if not OS.has_feature("android"):
+        return
+
+    if not Engine.has_singleton("AkariSpeech"):
+        print("Akari speech error: AkariSpeech plugin is unavailable")
+        return
+
+    speech_plugin = Engine.get_singleton("AkariSpeech")
+
+    if not speech_plugin.isAvailable():
+        print("Akari speech error: Android speech recognition is unavailable")
+        speech_plugin = null
+        return
+
+    print("Akari speech: native speech plugin ready")
+
+
+func _process(_delta: float) -> void:
+    if speech_plugin == null:
+        return
+
+    var error: String = speech_plugin.getError()
+    if not error.is_empty():
+        voice_error.emit(error)
+        print("Akari speech error: ", error)
+
+    var text: String = speech_plugin.getResult()
+    if not text.is_empty():
+        print("Akari speech: recognized text = ", text)
+        submit_speech_text(text)
+
 
 func setup_recording() -> void:
     record_bus_index = AudioServer.get_bus_index(RECORD_BUS)
@@ -45,6 +80,13 @@ func start_recording() -> void:
         return
 
     is_recording = true
+
+    if speech_plugin != null:
+        speech_plugin.startListening()
+        recording_started.emit()
+        print("Akari speech: listening started")
+        return
+
     record_effect.set_recording_active(true)
     microphone_player.play()
 
@@ -57,6 +99,12 @@ func stop_recording() -> void:
         return
 
     is_recording = false
+
+    if speech_plugin != null:
+        speech_plugin.stopListening()
+        recording_stopped.emit()
+        print("Akari speech: listening stopped")
+        return
 
     var recording := record_effect.get_recording()
 
@@ -82,6 +130,35 @@ func stop_recording() -> void:
         print("Akari voice error: could not save WAV. Error = ", save_result)
 
     recording_ready.emit(recording)
+
+
+func speak(text: String) -> void:
+    text = text.strip_edges()
+
+    if text.is_empty():
+        return
+
+    if speech_plugin == null:
+        return
+
+    if not speech_plugin.isTtsAvailable():
+        voice_error.emit("Text-to-speech is unavailable.")
+        return
+
+    speech_plugin.speak(text)
+
+
+func speak_response(text: String) -> void:
+    if speech_plugin == null:
+        return
+
+    speech_plugin.speak(text)
+
+func stop_speaking() -> void:
+    if speech_plugin == null:
+        return
+
+    speech_plugin.stopSpeaking()
 
 
 func submit_speech_text(text: String) -> void:

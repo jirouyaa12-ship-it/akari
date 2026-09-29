@@ -12,6 +12,7 @@ func _ready() -> void:
 	voice_manager.recording_started.connect(_on_recording_started)
 	voice_manager.recording_stopped.connect(_on_recording_stopped)
 	voice_manager.speech_text_received.connect(_on_speech_text_received)
+	voice_manager.voice_error.connect(_on_voice_error)
 
 	print("Akari chat system ready")
 	send_button.pressed.connect(_on_send_pressed)
@@ -37,6 +38,10 @@ func _on_recording_stopped() -> void:
 
 func _on_speech_text_received(text: String) -> void:
 	send_message(text)
+
+
+func _on_voice_error(message: String) -> void:
+	print("Akari voice error: ", message)
 
 
 func _on_send_pressed() -> void:
