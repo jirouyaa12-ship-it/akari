@@ -19,11 +19,9 @@ class AndroidExportPlugin extends EditorExportPlugin:
 		return platform is EditorExportPlatformAndroid
 
 	func _get_android_libraries(platform, debug) -> PackedStringArray:
-		if debug:
-			return PackedStringArray([
-			"akari_speech/bin/debug/AkariSpeech-debug.aar"
-			])
-		else:
+        return PackedStringArray([
+            "akari_speech/bin/release/AkariSpeech-release.aar"
+        ])
 			return PackedStringArray([
 			"akari_speech/bin/release/AkariSpeech-release.aar"
 		])
