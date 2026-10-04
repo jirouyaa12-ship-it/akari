@@ -2,6 +2,7 @@ package com.akari.speech
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -20,6 +21,7 @@ class AkariSpeechPlugin(godot: Godot) : GodotPlugin(godot) {
 
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady: Boolean = false
+    private var pendingSpeech: String? = null
 
     override fun getPluginName(): String {
         return "AkariSpeech"
@@ -164,6 +166,8 @@ class AkariSpeechPlugin(godot: Godot) : GodotPlugin(godot) {
 
     @UsedByGodot
     fun speak(text: String) {
+        Log.d("AkariSpeech", "speak() called: $text")
+
         val activity = getActivity()
 
         if (activity == null) {
@@ -180,35 +184,50 @@ class AkariSpeechPlugin(godot: Godot) : GodotPlugin(godot) {
         activity.runOnUiThread {
             try {
                 if (textToSpeech == null) {
+                    Log.d("AkariSpeech", "Creating TextToSpeech")
+                    pendingSpeech = cleanText
+
                     textToSpeech = TextToSpeech(activity) { status ->
                         if (status == TextToSpeech.SUCCESS) {
                             ttsReady = true
                             textToSpeech?.language = Locale.getDefault()
-                            textToSpeech?.speak(
-                                cleanText,
-                                TextToSpeech.QUEUE_FLUSH,
-                                null,
-                                "akari_tts"
-                            )
+                            Log.d("AkariSpeech", "TTS initialization succeeded")
+
+                            val pending = pendingSpeech
+                            pendingSpeech = null
+
+                            if (pending != null) {
+                                val result = textToSpeech?.speak(
+                                    pending,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    "akari_tts"
+                                )
+                                Log.d("AkariSpeech", "TTS pending speak result: $result")
+                            }
                         } else {
                             ttsReady = false
                             error = "Text-to-speech initialization failed."
                         }
                     }
+
                     return@runOnUiThread
                 }
 
                 if (!ttsReady) {
-                    error = "Text-to-speech is not ready yet."
+                    pendingSpeech = cleanText
+                    Log.d("AkariSpeech", "TTS not ready; queued text")
                     return@runOnUiThread
                 }
 
-                textToSpeech?.speak(
+                val result = textToSpeech?.speak(
                     cleanText,
                     TextToSpeech.QUEUE_FLUSH,
                     null,
                     "akari_tts"
                 )
+                Log.d("AkariSpeech", "TTS speak result: $result")
+
             } catch (exception: Exception) {
                 error = "${exception.javaClass.simpleName}: ${exception.message}"
             }

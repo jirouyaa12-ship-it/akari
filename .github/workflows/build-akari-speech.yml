@@ -16,18 +16,19 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools'
-          accept-android-sdk-licenses: true
-          log-accepted-android-sdk-licenses: false
+
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0"
+          yes | sdkmanager --licenses > /dev/null || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.11.1'
+          gradle-version: '8.9'
 
       - name: Build release AAR
         working-directory: addons/akari_speech/android
@@ -37,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AkariSpeech-release
-          path: addons/akari_speech/android/build/outputs/aar/AkariSpeech-release.aar
+          path: addons/akari_speech/android/build/outputs/aar/*.aar

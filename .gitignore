@@ -7,3 +7,7 @@
 
 # Gradle cache
 .gradle/
+
+# Android/Godot generated files
+Akari-debug.apk
+addons/akari_speech/android/build/

@@ -44,10 +44,18 @@ func _process(_delta: float) -> void:
         voice_error.emit(error)
         print("Akari speech error: ", error)
 
+        if is_recording:
+            is_recording = false
+            recording_stopped.emit()
+
     var text: String = speech_plugin.getResult()
     if not text.is_empty():
         print("Akari speech: recognized text = ", text)
         submit_speech_text(text)
+
+        if is_recording:
+            is_recording = false
+            recording_stopped.emit()
 
 
 func setup_recording() -> void:
