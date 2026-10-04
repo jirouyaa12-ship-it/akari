@@ -60,6 +60,7 @@ func send_message(message: String) -> void:
 
 	var response := get_response(message)
 	add_message("Akari: " + response)
+    voice_manager.speak_response(response)
 
 	message_input.clear()
 	message_input.grab_focus()
