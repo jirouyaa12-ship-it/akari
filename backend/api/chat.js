@@ -1,8 +1,32 @@
 
+import { timingSafeEqual } from "node:crypto";
+
+function tokenMatches(providedToken, expectedToken) {
+  if (typeof providedToken !== "string" || !expectedToken) {
+    return false;
+  }
+
+  const provided = Buffer.from(providedToken, "utf8");
+  const expected = Buffer.from(expectedToken, "utf8");
+
+  return (
+    provided.length === expected.length &&
+    timingSafeEqual(provided, expected)
+  );
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const accessToken = process.env.AKARI_ACCESS_TOKEN;
+  const authorization = req.headers.authorization ?? "";
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+
+  if (!accessToken || !tokenMatches(match?.[1], accessToken)) {
+    return res.status(401).json({ error: "Unauthorized." });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -28,8 +52,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Only allow the initial low-cost model until we add
-    // a server-side model registry and manual model selection.
     if (model !== "gpt-6-luna") {
       return res.status(400).json({
         error: "This model is not enabled yet."
